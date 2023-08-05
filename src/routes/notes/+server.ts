@@ -4,6 +4,7 @@ import { json } from '@sveltejs/kit';
 import postgres from 'postgres';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { eq } from 'drizzle-orm';
 
 import { nanoid } from 'nanoid';
 
@@ -14,17 +15,21 @@ export async function POST({ request }) {
 	const db: PostgresJsDatabase = drizzle(queryClient);
 
 	const { title, note } = await request.json();
-	console.log('title: ', title);
-	console.log('note: ', note);
+	const newId = nanoid();
 
-	const result = await db.insert(notesTable).values({
-		id: nanoid(),
+	await db.insert(notesTable).values({
+		id: newId,
 		userId: 'default-uid',
 		title,
 		note
 	});
 
+	const result = await db
+		.select({ title: notesTable.title, note: notesTable.note })
+		.from(notesTable)
+		.where(eq(notesTable.id, newId));
+
 	console.log('result: ', result);
 
-	return json({ note }, { status: 200 });
+	return json({ title, note }, { status: 200 });
 }
