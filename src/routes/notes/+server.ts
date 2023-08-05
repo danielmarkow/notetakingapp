@@ -1,13 +1,17 @@
 import { notesTable } from '$lib/db/schema.js';
 import { json } from '@sveltejs/kit';
 
-import { sql } from '@vercel/postgres';
-import { drizzle } from 'drizzle-orm/vercel-postgres';
+import postgres from 'postgres';
+import { drizzle } from 'drizzle-orm/postgres-js';
+import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 
 import { nanoid } from 'nanoid';
 
+import { POSTGRES_URL } from '$env/static/private';
+
 export async function POST({ request }) {
-	const db = drizzle(sql);
+	const queryClient = postgres(POSTGRES_URL);
+	const db: PostgresJsDatabase = drizzle(queryClient);
 
 	const { title, note } = await request.json();
 	console.log('title: ', title);
