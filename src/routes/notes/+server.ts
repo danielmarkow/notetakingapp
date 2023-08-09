@@ -29,7 +29,35 @@ export async function POST({ request }) {
 		.from(notesTable)
 		.where(eq(notesTable.id, newId));
 
-	console.log('result: ', result);
+	return json(result[0], { status: 200 });
+}
 
-	return json({ title, note }, { status: 200 });
+export async function GET({ url }) {
+	const queryClient = postgres(POSTGRES_URL);
+	const db: PostgresJsDatabase = drizzle(queryClient);
+
+	const userId = url.searchParams.get('userId');
+	const noteId = url.searchParams.get('noteId');
+
+	if (!userId && !noteId) {
+		return json({ message: 'no userId provided' }, { status: 400 });
+	}
+
+	if (userId) {
+		const result = await db.select().from(notesTable).where(eq(notesTable.userId, userId));
+		if (result) {
+			return json(result, { status: 200 });
+		} else {
+			return json({ message: 'not found' }, { status: 404 });
+		}
+	}
+
+	if (noteId) {
+		const result = await db.select().from(notesTable).where(eq(notesTable.id, noteId));
+		if (result) {
+			return json(result[0], { status: 200 });
+		} else {
+			return json({ message: 'not found' }, { status: 404 });
+		}
+	}
 }

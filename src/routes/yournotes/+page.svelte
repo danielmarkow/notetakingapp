@@ -1,32 +1,31 @@
 <script>
 	import { marked } from 'marked';
-  import {createMutation} from '@tanstack/svelte-query';
+	import { createMutation } from '@tanstack/svelte-query';
 
-  let title = '';
+	let title = '';
 	let value = '';
-  let savedTitle = "";
-  let savedValue = "";
+	let savedTitle = '';
+	let savedValue = '';
 
-  const notesMutation = createMutation({
-    mutationFn: async () => {
-      const response = await fetch('/notes', {
-        method: 'POST',
-        body: JSON.stringify({ title, note: value }),
-        headers: {
-          'Content-Type': 'application/json'
-        }
-		  });
-      return await response.json();
-    },
-    onSuccess: (data) => {
-      savedTitle = data.title;
-      savedValue = data.note;
-    }
-  })
+	const notesMutation = createMutation({
+		mutationFn: async () => {
+			const response = await fetch('/notes', {
+				method: 'POST',
+				body: JSON.stringify({ title, note: value }),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			return await response.json();
+		},
+		onSuccess: (data) => {
+			savedTitle = data.title;
+			savedValue = data.note;
+		}
+	});
 
-  $: titleStatus = title === savedTitle;
-  $: valueStatus = value === savedValue;
-
+	$: titleStatus = title === savedTitle;
+	$: valueStatus = value === savedValue;
 </script>
 
 <div class="grid grid-cols-2 mt-5 gap-2">
@@ -34,8 +33,15 @@
 		<input id="title" type="text" bind:value={title} placeholder="Title" />
 		<textarea bind:value rows="5" cols="40" placeholder="Input your notes..." />
 	</div>
-	<div class="border border-dotted border-black">
-		<article class="prose prose-sm">{@html marked(value, {mangle: false, headerIds: false})}</article>
+	<div class="border border-black">
+    {#if value === ""}
+      <span class="text-gray-500 p-2 text-base">Nothing here yet</span>
+    {:else}
+    <article class="prose prose-sm">
+      {@html marked(value, { mangle: false, headerIds: false })}
+    </article>
+
+    {/if}
 	</div>
 </div>
 <button
