@@ -25,7 +25,7 @@ export async function POST({ request }) {
 	});
 
 	const result = await db
-		.select({ title: notesTable.title, note: notesTable.note })
+		.select({ id: notesTable.id, title: notesTable.title, note: notesTable.note })
 		.from(notesTable)
 		.where(eq(notesTable.id, newId));
 
@@ -40,7 +40,7 @@ export async function GET({ url }) {
 	const noteId = url.searchParams.get('noteId');
 
 	if (!userId && !noteId) {
-		return json({ message: 'no userId provided' }, { status: 400 });
+		return json({ message: 'no parameters provided' }, { status: 400 });
 	}
 
 	if (userId) {
@@ -59,5 +59,20 @@ export async function GET({ url }) {
 		} else {
 			return json({ message: 'not found' }, { status: 404 });
 		}
+	}
+}
+
+export async function PUT({ request }) {
+	const queryClient = postgres(POSTGRES_URL);
+	const db: PostgresJsDatabase = drizzle(queryClient);
+
+	const note = await request.json();
+
+	if (note) {
+		await db.update(notesTable).set(note).where(eq(notesTable.id, note.id));
+		const result = await db.select().from(notesTable).where(eq(notesTable.id, note.id));
+		return json(result[0], { status: 200 });
+	} else {
+		return json({ message: 'no parameters provided' }, { status: 400 });
 	}
 }
